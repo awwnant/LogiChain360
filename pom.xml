@@ -8,7 +8,7 @@
 		<version>3.5.14</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.cts.</groupId>
+	<groupId>com.cts</groupId>
 	<artifactId>logichain360</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name/>

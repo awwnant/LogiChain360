@@ -6,9 +6,9 @@ import org.springframework.http.ResponseEntity;
 import java.util.List;
 
 public interface VendorService {
-    ResponseEntity<VendorResponse>       getVendorById(Long id);
     ResponseEntity<VendorResponse>       getVendorByUserId(Long userId);
     ResponseEntity<List<VendorResponse>> getAllVendors();
     ResponseEntity<VendorResponse>       updateVendor(Long id, UpdateVendorRequest request);
     ResponseEntity<Void>                 deleteVendor(Long id);
+	ResponseEntity<VendorResponse> getVendorById(Long id);
 }

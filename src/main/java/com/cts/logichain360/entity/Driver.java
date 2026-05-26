@@ -7,7 +7,7 @@ import java.time.LocalDate;
 
 @Entity @Table(name = "drivers")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
-public class Driver {
+public class Driver extends SoftDeletableEntity{
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 

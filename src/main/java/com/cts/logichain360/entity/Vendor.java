@@ -5,7 +5,7 @@ import lombok.*;
 
 @Entity @Table(name = "vendors")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
-public class Vendor {
+public class Vendor extends SoftDeletableEntity{
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 

@@ -18,14 +18,14 @@ public class VendorServiceImpl implements VendorService {
     @Override
     public ResponseEntity<VendorResponse> getVendorById(Long id) {
         return vendorRepo.findById(id)
-                .map(v -> ResponseEntity.ok(toResponse(v)))
+                .map(vendor -> ResponseEntity.ok(toResponse(vendor)))
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @Override
     public ResponseEntity<VendorResponse> getVendorByUserId(Long userId) {
         return vendorRepo.findByUser_Id(userId)
-                .map(v -> ResponseEntity.ok(toResponse(v)))
+                .map(vendor -> ResponseEntity.ok(toResponse(vendor)))
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 

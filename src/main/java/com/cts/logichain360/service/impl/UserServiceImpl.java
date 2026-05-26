@@ -49,7 +49,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ResponseEntity<LoginResponse> login(LoginRequest req) {
-        return userRepo.findByPhone(req.getPhone())
+        return userRepo.findByPhoneAndIsDeletedFalse(req.getPhone())
                 .filter(user -> encoder.matches(req.getPassword(), user.getPassword()))
                 .map(user -> ResponseEntity.ok(LoginResponse.builder()
                         .userId(user.getId())
@@ -105,7 +105,18 @@ public class UserServiceImpl implements UserService {
     public ResponseEntity<Void> deleteUser(Long id) {
         return userRepo.findById(id)
                 .map(user -> {
+
+                    driverRepo.findByUser(user)
+                            .ifPresent(driverRepo::delete);
+
+                    vendorRepo.findByUser(user)
+                            .ifPresent(vendorRepo::delete);
+
+                    wmRepo.findByUser(user)
+                            .ifPresent(wmRepo::delete);
+
                     userRepo.delete(user);
+
                     return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
                 })
                 .orElseGet(() -> ResponseEntity.notFound().build());
