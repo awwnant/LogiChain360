@@ -16,12 +16,12 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
-    private final UserRepository             userRepo;
-    private final CustomerRepository         customerRepo;
-    private final VendorRepository           vendorRepo;
+    private final UserRepository userRepo;
+    private final CustomerRepository customerRepo;
+    private final VendorRepository vendorRepo;
     private final WarehouseManagerRepository wmRepo;
-    private final DriverRepository           driverRepo;
-    private final PasswordEncoder            encoder;
+    private final DriverRepository driverRepo;
+    private final PasswordEncoder encoder;
 
     @Override
     @Transactional
@@ -105,24 +105,16 @@ public class UserServiceImpl implements UserService {
     public ResponseEntity<Void> deleteUser(Long id) {
         return userRepo.findById(id)
                 .map(user -> {
-
-                    driverRepo.findByUser(user)
-                            .ifPresent(driverRepo::delete);
-
-                    vendorRepo.findByUser(user)
-                            .ifPresent(vendorRepo::delete);
-
-                    wmRepo.findByUser(user)
-                            .ifPresent(wmRepo::delete);
-
+                    driverRepo.findByUser(user).ifPresent(driverRepo::delete);
+                    vendorRepo.findByUser(user).ifPresent(vendorRepo::delete);
+                    wmRepo.findByUser(user).ifPresent(wmRepo::delete);
                     userRepo.delete(user);
-
                     return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
                 })
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    // ── Helpers ──────────────────────────────────────────────────
+    //Helpers 
     private record ProfileResult(Long id, String table) {}
     private ProfileResult createRoleProfile(User user, UserRegistrationRequest req) {
         return switch (user.getRole()) {
@@ -130,7 +122,6 @@ public class UserServiceImpl implements UserService {
                 Customer c = customerRepo.save(Customer.builder()
                         .user(user).companyName(req.getCompanyName()).gstNumber(req.getGstNumber())
                         .email(req.getEmail()).shippingAddress(req.getShippingAddress())
-//                        .billingAddress(req.getBillingAddress()).customerType(req.getCustomerType())
                         .creditLimit(req.getCreditLimit()).paymentTerms(req.getPaymentTerms()).build());
                 yield new ProfileResult(c.getId(), "customers");
             }
@@ -142,9 +133,13 @@ public class UserServiceImpl implements UserService {
                 yield new ProfileResult(v.getId(), "vendors");
             }
             case WAREHOUSE_MANAGER -> {
+                // No assignedWarehouse here , warehousemanagers are created first, then assigned via PATCH /api/v1/warehouse-managers/{id}/assign-warehouse with a warehouseId.
                 WarehouseManager wm = wmRepo.save(WarehouseManager.builder()
-                        .user(user).employeeCode(req.getEmployeeCode()).designation(req.getDesignation())
-                        .shift(req.getShift()).assignedWarehouseCode(req.getAssignedWarehouseCode()).build());
+                        .user(user)
+                        .employeeCode(req.getEmployeeCode())
+                        .designation(req.getDesignation())
+                        .shift(req.getShift())
+                        .build());
                 yield new ProfileResult(wm.getId(), "warehouse_managers");
             }
             case DRIVER -> {

@@ -1,8 +1,9 @@
 package com.cts.logichain360.dto.response;
+
 import com.cts.logichain360.enums.Shift;
 import lombok.*;
 
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Data @NoArgsConstructor @AllArgsConstructor @Builder
 public class WarehouseManagerResponse {
     private Long   id;
     private Long   userId;
@@ -11,5 +12,9 @@ public class WarehouseManagerResponse {
     private String employeeCode;
     private String designation;
     private Shift  shift;
+    
+    //from warehouse entity
+    private Long   assignedWarehouseId;
     private String assignedWarehouseCode;
+    private String assignedWarehouseLocation;
 }

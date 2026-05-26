@@ -22,7 +22,10 @@ public class WarehouseManager extends SoftDeletableEntity{
 
     @Enumerated(EnumType.STRING)
     private Shift shift;
-
-    private String assignedWarehouseCode;
+    
+    
+    //One warehouse one manager
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "assigned_warehouse_id", unique = true)
+    private Warehouse assignedWarehouse;
 }
-

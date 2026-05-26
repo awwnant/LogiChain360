@@ -7,5 +7,5 @@ public class UpdateWarehouseManagerRequest {
     private String employeeCode;
     private String designation;
     private Shift  shift;
-    private String assignedWarehouseCode;
+//    private String assignedWarehouseCode;
 }

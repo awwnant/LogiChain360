@@ -3,5 +3,6 @@ import lombok.*;
 
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class WarehouseAssignmentRequest {
-    private String warehouseCode;
+//    private String warehouseCode;
+	  private Long warehouseId;
 }
