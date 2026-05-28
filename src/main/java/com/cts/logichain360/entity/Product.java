@@ -25,12 +25,12 @@ public class Product extends SoftDeletableEntity {
     private Integer quantity = 0;
 
     //Many products belong to 1 vendor- vendor monopoly
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "vendor_id", nullable = false)
     private Vendor vendor;
 
     //Many products lives in 1 warehouse
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "warehouse_id", nullable = false)
     private Warehouse warehouse;
 }

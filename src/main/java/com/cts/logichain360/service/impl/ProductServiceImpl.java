@@ -4,36 +4,37 @@ import com.cts.logichain360.dto.request.*;
 import com.cts.logichain360.dto.response.ProductResponse;
 import com.cts.logichain360.entity.Product;
 import com.cts.logichain360.entity.Vendor;
-import com.cts.logichain360.entity.Warehouse;
 import com.cts.logichain360.exception.ResourceNotFoundException;
 import com.cts.logichain360.exception.UserAlreadyExistsException;
-import com.cts.logichain360.repository.*;
+import com.cts.logichain360.repository.ProductRepository;
+import com.cts.logichain360.repository.VendorRepository;
 import com.cts.logichain360.service.ProductService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
-@Service @RequiredArgsConstructor
+@Service
+@RequiredArgsConstructor
+@Slf4j
 public class ProductServiceImpl implements ProductService {
 
-    private final ProductRepository   productRepo;
-    private final VendorRepository    vendorRepo;
-    private final WarehouseRepository warehouseRepo;
+    private final ProductRepository productRepo;
+    private final VendorRepository  vendorRepo;
 
     @Override
     @Transactional
     public ResponseEntity<ProductResponse> createProduct(CreateProductRequest req) {
+        log.info("Creating product '{}' for vendor {}", req.getProductName(), req.getVendorId());
+
         Vendor vendor = vendorRepo.findById(req.getVendorId())
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Vendor " + req.getVendorId() + " not found."));
 
-        Warehouse warehouse = warehouseRepo.findById(req.getWarehouseId())
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Warehouse " + req.getWarehouseId() + " not found."));
-
         if (productRepo.existsByProductNameAndVendor_Id(req.getProductName(), vendor.getId())) {
+            log.warn("Duplicate product name '{}' for vendor {}", req.getProductName(), vendor.getId());
             throw new UserAlreadyExistsException(
                     "Vendor " + vendor.getId() + " already has a product named '"
                             + req.getProductName() + "'.");
@@ -43,16 +44,16 @@ public class ProductServiceImpl implements ProductService {
                 .productName(req.getProductName())
                 .productPrice(req.getProductPrice())
                 .productDescription(req.getProductDescription())
-                .quantity(req.getQuantity() == null ? 0 : req.getQuantity())
                 .vendor(vendor)
-                .warehouse(warehouse)
                 .build());
 
+        log.info("Created product id={} for vendor {}", saved.getProductId(), vendor.getId());
         return new ResponseEntity<>(toResponse(saved), HttpStatus.CREATED);
     }
 
     @Override
     public ResponseEntity<ProductResponse> getProductById(Long id) {
+        log.debug("Fetching product id={}", id);
         Product p = productRepo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product " + id + " not found."));
         return ResponseEntity.ok(toResponse(p));
@@ -60,11 +61,13 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ResponseEntity<List<ProductResponse>> getAllProducts() {
+        log.debug("Fetching all products");
         return ResponseEntity.ok(productRepo.findAll().stream().map(this::toResponse).toList());
     }
 
     @Override
     public ResponseEntity<List<ProductResponse>> getProductsByVendor(Long vendorId) {
+        log.debug("Fetching all products for vendor={}", vendorId);
         if (!vendorRepo.existsById(vendorId)) {
             throw new ResourceNotFoundException("Vendor " + vendorId + " not found.");
         }
@@ -73,17 +76,9 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public ResponseEntity<List<ProductResponse>> getProductsByWarehouse(Long warehouseId) {
-        if (!warehouseRepo.existsById(warehouseId)) {
-            throw new ResourceNotFoundException("Warehouse " + warehouseId + " not found.");
-        }
-        return ResponseEntity.ok(productRepo.findAllByWarehouse_Id(warehouseId)
-                .stream().map(this::toResponse).toList());
-    }
-
-    @Override
     @Transactional
     public ResponseEntity<ProductResponse> updateProduct(Long id, UpdateProductRequest req) {
+        log.info("Updating product id={}", id);
         Product p = productRepo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product " + id + " not found."));
 
@@ -98,30 +93,14 @@ public class ProductServiceImpl implements ProductService {
         }
         if (req.getProductPrice()       != null) p.setProductPrice(req.getProductPrice());
         if (req.getProductDescription() != null) p.setProductDescription(req.getProductDescription());
-        if (req.getQuantity()           != null) p.setQuantity(req.getQuantity());
 
-        return ResponseEntity.ok(toResponse(productRepo.save(p)));
-    }
-
-    @Override
-    @Transactional
-    public ResponseEntity<ProductResponse> adjustQuantity(Long id, QuantityAdjustmentRequest req) {
-        Product p = productRepo.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Product " + id + " not found."));
-
-        int newQty = p.getQuantity() + req.getDelta();
-        if (newQty < 0) {
-            throw new IllegalArgumentException(
-                    "Cannot reduce quantity below zero. Current=" + p.getQuantity()
-                            + ", delta=" + req.getDelta());
-        }
-        p.setQuantity(newQty);
         return ResponseEntity.ok(toResponse(productRepo.save(p)));
     }
 
     @Override
     @Transactional
     public ResponseEntity<Void> deleteProduct(Long id) {
+        log.info("Deleting product id={}", id);
         Product p = productRepo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product " + id + " not found."));
         productRepo.delete(p);
@@ -134,12 +113,8 @@ public class ProductServiceImpl implements ProductService {
                 .productName(p.getProductName())
                 .productPrice(p.getProductPrice())
                 .productDescription(p.getProductDescription())
-                .quantity(p.getQuantity())
                 .vendorId(p.getVendor().getId())
                 .vendorCompanyName(p.getVendor().getCompanyName())
-                .warehouseId(p.getWarehouse().getId())
-                .warehouseCode(p.getWarehouse().getWarehouseCode())
-                .warehouseLocation(p.getWarehouse().getLocation())
                 .build();
     }
 }
